@@ -10,7 +10,7 @@ PROXIES = {
     "http": "http://127.0.0.1:10809",
     "https": "http://127.0.0.1:10809"
 }
-
+desp = ''  # 空值
 
 def log(info: str):
     print(info)
