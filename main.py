@@ -12,31 +12,44 @@ PROXIES = {
 }
 
 
-def login(username, password) -> (str, requests.session):
+def log(info: str):
+    print(info)
+    global desp
+    desp = desp + info + '\n\n'
+
+
+def login(username: str, password: str) -> (str, requests.session):
     headers = {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
                       "Chrome/83.0.4103.116 Safari/537.36",
         "origin": "https://www.euserv.com"
     }
+    url = "https://support.euserv.com/index.iphp"
+    session = requests.Session()
+
+    sess = session.get(url, headers=headers)
+    sess_id = re.findall("PHPSESSID=(\\w{10,100});", str(sess.headers))[0]
+    # 访问png
+    png_url = "https://support.euserv.com/pic/logo_small.png"
+    session.get(png_url, headers=headers)
+
     login_data = {
         "email": username,
         "password": password,
         "form_selected_language": "en",
         "Submit": "Login",
-        "subaction": "login"
+        "subaction": "login",
+        "sess_id": sess_id
     }
-    url = "https://support.euserv.com/index.iphp"
-    session = requests.Session()
     f = session.post(url, headers=headers, data=login_data)
     f.raise_for_status()
-    if f.text.find('Hello') == -1:
+
+    if f.text.find('Hello') == -1 and f.text.find('Confirm or change your customer data here') == -1:
         return '-1', session
-    # print(f.request.url)
-    sess_id = f.request.url[f.request.url.index('=') + 1:len(f.request.url)]
     return sess_id, session
 
 
-def get_servers(sess_id, session) -> {}:
+def get_servers(sess_id: str, session: requests.session) -> {}:
     d = {}
     url = "https://support.euserv.com/index.iphp?sess_id=" + sess_id
     headers = {
@@ -57,7 +70,7 @@ def get_servers(sess_id, session) -> {}:
     return d
 
 
-def renew(sess_id, session, password, order_id) -> bool:
+def renew(sess_id: str, session: requests.session, password: str, order_id: str) -> bool:
     url = "https://support.euserv.com/index.iphp"
     headers = {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -96,17 +109,17 @@ def renew(sess_id, session, password, order_id) -> bool:
     return True
 
 
-def check(sess_id, session):
+def check(sess_id: str, session: requests.session):
     print("Checking.......")
     d = get_servers(sess_id, session)
     flag = True
     for key, val in d.items():
         if val:
             flag = False
-            print("ServerID: %s Renew Failed!" % key)
-    if flag:
-        print("ALL Work Done! Enjoy")
+            log("ServerID: %s Renew Failed!" % key)
 
+    if flag:
+        log("ALL Work Done! Enjoy")
 
 if __name__ == "__main__":
     if not USERNAME or not PASSWORD:
