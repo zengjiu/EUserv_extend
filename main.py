@@ -123,30 +123,31 @@ def check(sess_id: str, session: requests.session):
 
 if __name__ == "__main__":
     if not USERNAME or not PASSWORD:
-        print("你没有添加任何账户")
+        log("你没有添加任何账户")
         exit(1)
     user_list = USERNAME.strip().split()
     passwd_list = PASSWORD.strip().split()
     if len(user_list) != len(passwd_list):
-        print("The number of usernames and passwords do not match!")
+        log("The number of usernames and passwords do not match!")
         exit(1)
     for i in range(len(user_list)):
         print('*' * 30)
-        print("正在续费第 %d 个账号" % (i + 1))
+        log("正在续费第 %d 个账号" % (i + 1))
         sessid, s = login(user_list[i], passwd_list[i])
         if sessid == '-1':
-            print("第 %d 个账号登陆失败，请检查登录信息" % (i + 1))
+            log("第 %d 个账号登陆失败，请检查登录信息" % (i + 1))
+
             continue
         SERVERS = get_servers(sessid, s)
-        print("检测到第 {} 个账号有 {} 台VPS，正在尝试续期".format(i + 1, len(SERVERS)))
+        log("检测到第 {} 个账号有 {} 台VPS，正在尝试续期".format(i + 1, len(SERVERS)))
         for k, v in SERVERS.items():
             if v:
                 if not renew(sessid, s, passwd_list[i], k):
-                    print("ServerID: %s Renew Error!" % k)
+                    log("ServerID: %s Renew Error!" % k)
                 else:
-                    print("ServerID: %s has been successfully renewed!" % k)
+                    log("ServerID: %s has been successfully renewed!" % k)
             else:
-                print("ServerID: %s does not need to be renewed" % k)
+                log("ServerID: %s does not need to be renewed" % k)
         time.sleep(15)
         check(sessid, s)
         time.sleep(5)
